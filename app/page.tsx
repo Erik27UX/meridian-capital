@@ -1,101 +1,125 @@
-import Image from "next/image";
+'use client';
+import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Activity, ArrowLeft } from 'lucide-react';
+import { Stock, Investment } from '@/types';
+import SearchBar from '@/components/SearchBar';
+import RecommendedStocks from '@/components/RecommendedStocks';
+import PortfolioTracker from '@/components/PortfolioTracker';
+import InvestmentCalculator from '@/components/InvestmentCalculator';
+import StockChart from '@/components/StockChart';
+import NewsPanel from '@/components/NewsPanel';
+import { usePortfolio } from '@/hooks/usePortfolio';
+import { useStockPrice } from '@/hooks/useStockPrice';
+
+function StockDetail({ ticker, onBack }: { ticker: string; onBack: () => void }) {
+  const { quote } = useStockPrice(ticker);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="space-y-5"
+    >
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm text-silver hover:text-[var(--sp-blue)] transition-colors mb-2"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Dashboard
+      </button>
+
+      <div className="flex items-center gap-4">
+        <span className="font-mono-num text-2xl font-bold text-[var(--sp-blue)]">{ticker}</span>
+        {quote && (
+          <>
+            <span className="font-mono-num text-3xl font-bold">${quote.price.toFixed(2)}</span>
+            <span className={`font-mono-num text-lg ${quote.changePercent >= 0 ? 'text-gain' : 'text-loss'}`}>
+              {quote.change >= 0 ? '+' : ''}{quote.change.toFixed(2)} ({quote.changePercent >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%)
+            </span>
+            <span className="flex items-center gap-1 text-xs text-silver">
+              <span className="w-2 h-2 rounded-full bg-[var(--sp-green)] animate-pulse-live" />
+              Live
+            </span>
+          </>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <StockChart ticker={ticker} />
+        <NewsPanel ticker={ticker} />
+      </div>
+    </motion.div>
+  );
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  const [calcStock, setCalcStock] = useState<Stock | null>(null);
+  const { addInvestment } = usePortfolio();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  function goHome() {
+    setSelectedTicker(null);
+  }
+
+  return (
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex items-center gap-3 mb-8">
+        <button onClick={goHome} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <Activity className="w-7 h-7 text-[var(--sp-blue)]" />
+          <h1 className="text-2xl font-bold tracking-tight">StockPulse</h1>
+        </button>
+      </div>
+
+      <div className="mb-10">
+        <SearchBar
+          onSelectStock={setSelectedTicker}
+          onCalculate={setCalcStock}
+        />
+      </div>
+
+      <AnimatePresence mode="wait">
+        {selectedTicker ? (
+          <div key="detail" className="mb-10">
+            <StockDetail ticker={selectedTicker} onBack={goHome} />
+          </div>
+        ) : (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+            <div className="mb-10">
+              <RecommendedStocks onCalculate={setCalcStock} onSelect={setSelectedTicker} />
+            </div>
+
+            <div className="mb-10">
+              <PortfolioTracker />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <footer className="text-center py-6 border-t border-white/5">
+        <p className="text-xs text-[var(--sp-muted)]">
+          Not financial advice. For informational purposes only. Past performance does not guarantee future results.
+        </p>
       </footer>
-    </div>
+
+      <AnimatePresence>
+        {calcStock && (
+          <InvestmentCalculator
+            stock={calcStock}
+            onClose={() => setCalcStock(null)}
+            onTrack={(inv: Investment) => {
+              addInvestment(inv);
+              setCalcStock(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
+    </main>
   );
 }
