@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Providers from './providers';
 
 export const metadata: Metadata = {
   title: 'StockPulse — AI-Powered Stock Intelligence',
@@ -22,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Running in demo mode — add API keys in .env.local for live data
         </div>
         <div className="pt-8">
-          {children}
+          <Providers>{children}</Providers>
         </div>
       </body>
     </html>

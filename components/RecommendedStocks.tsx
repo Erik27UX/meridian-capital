@@ -1,11 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Recommendation, Stock } from '@/types';
+import { Recommendation, Stock, Timeframe } from '@/types';
 import { getRecommendations } from '@/lib/api';
 import StockCard from './StockCard';
 import { Sparkles, ArrowUpDown } from 'lucide-react';
 
 type SortMode = 'default' | 'profit' | 'bullish';
+
+const TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', '1Y'];
 
 export default function RecommendedStocks({ onCalculate, onSelect }: {
   onCalculate: (stock: Stock) => void;
@@ -14,6 +16,7 @@ export default function RecommendedStocks({ onCalculate, onSelect }: {
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState<SortMode>('default');
+  const [timeframe, setTimeframe] = useState<Timeframe>('1D');
 
   useEffect(() => {
     getRecommendations()
@@ -35,17 +38,34 @@ export default function RecommendedStocks({ onCalculate, onSelect }: {
           <Sparkles className="w-5 h-5 text-[var(--sp-blue)]" />
           <h2 className="text-lg font-semibold">Recommended Stocks</h2>
         </div>
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="w-4 h-4 text-silver" />
-          <select
-            value={sort}
-            onChange={e => setSort(e.target.value as SortMode)}
-            className="bg-[var(--sp-card)] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-silver focus:outline-none focus:border-[var(--sp-blue)]/40 cursor-pointer"
-          >
-            <option value="default">Default</option>
-            <option value="profit">Potential Profit</option>
-            <option value="bullish">Most Bullish</option>
-          </select>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 bg-[var(--sp-card)] border border-white/10 rounded-lg p-1">
+            {TIMEFRAMES.map(tf => (
+              <button
+                key={tf}
+                onClick={() => setTimeframe(tf)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  timeframe === tf
+                    ? 'bg-[var(--sp-blue)] text-white'
+                    : 'text-silver hover:text-white'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="w-4 h-4 text-silver" />
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value as SortMode)}
+              className="bg-[var(--sp-card)] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-silver focus:outline-none focus:border-[var(--sp-blue)]/40 cursor-pointer"
+            >
+              <option value="default">Default</option>
+              <option value="profit">Potential Profit</option>
+              <option value="bullish">Most Bullish</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -68,6 +88,7 @@ export default function RecommendedStocks({ onCalculate, onSelect }: {
               key={rec.stock.ticker}
               rec={rec}
               index={i}
+              timeframe={timeframe}
               onCalculate={() => onCalculate(rec.stock)}
               onSelect={() => onSelect(rec.stock.ticker)}
             />

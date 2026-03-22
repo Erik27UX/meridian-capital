@@ -36,6 +36,7 @@ export default function InvestmentCalculator({ stock, onClose, onTrack }: {
       shares: amountNum / stock.price,
       date: new Date().toISOString(),
       currentPrice: stock.price,
+      projectedGainPercent: projection.gainPercent,
     };
     onTrack(inv);
     onClose();

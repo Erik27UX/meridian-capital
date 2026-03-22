@@ -1,3 +1,5 @@
+export type Timeframe = '1D' | '1W' | '1M' | '3M' | '1Y';
+
 export interface Stock {
   ticker: string;
   name: string;
@@ -6,6 +8,7 @@ export interface Stock {
   changePercent: number;
   volume: number;
   marketCap: number;
+  changesByPeriod?: Partial<Record<Timeframe, number>>;
 }
 
 export interface StockQuote {
@@ -49,6 +52,8 @@ export interface Investment {
   shares: number;
   date: string;
   currentPrice: number;
+  projectedGainPercent?: number;
+  actualGainPercent?: number;
 }
 
 export type Signal = 'strong-buy' | 'buy' | 'hold' | 'sell';

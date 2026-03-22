@@ -5,7 +5,7 @@ import { Briefcase, TrendingUp } from 'lucide-react';
 import { formatCurrency, formatPercent } from '@/lib/calculations';
 
 export default function PortfolioTracker() {
-  const { investments, removeInvestment, totalInvested, currentValue, totalGain, totalGainPercent } = usePortfolio();
+  const { investments, removeInvestment, updateInvestment, totalInvested, currentValue, totalGain, totalGainPercent } = usePortfolio();
 
   return (
     <section>
@@ -51,7 +51,12 @@ export default function PortfolioTracker() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {investments.map(inv => (
-            <PortfolioCard key={inv.id} investment={inv} onRemove={() => removeInvestment(inv.id)} />
+            <PortfolioCard
+              key={inv.id}
+              investment={inv}
+              onRemove={() => removeInvestment(inv.id)}
+              onUpdate={(actual) => updateInvestment({ ...inv, actualGainPercent: actual })}
+            />
           ))}
         </div>
       )}

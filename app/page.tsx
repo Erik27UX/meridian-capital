@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Activity, ArrowLeft } from 'lucide-react';
+import { Activity, ArrowLeft, Calculator } from 'lucide-react';
 import { Stock, Investment } from '@/types';
 import SearchBar from '@/components/SearchBar';
 import RecommendedStocks from '@/components/RecommendedStocks';
@@ -12,8 +12,21 @@ import NewsPanel from '@/components/NewsPanel';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useStockPrice } from '@/hooks/useStockPrice';
 
-function StockDetail({ ticker, onBack }: { ticker: string; onBack: () => void }) {
+function StockDetail({ ticker, onBack, onCalculate }: { ticker: string; onBack: () => void; onCalculate: (stock: Stock) => void }) {
   const { quote } = useStockPrice(ticker);
+
+  function handleCalculate() {
+    if (!quote) return;
+    onCalculate({
+      ticker: quote.ticker,
+      name: quote.ticker,
+      price: quote.price,
+      change: quote.change,
+      changePercent: quote.changePercent,
+      volume: quote.volume,
+      marketCap: 0,
+    });
+  }
 
   return (
     <motion.div
@@ -30,7 +43,7 @@ function StockDetail({ ticker, onBack }: { ticker: string; onBack: () => void })
         Back to Dashboard
       </button>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <span className="font-mono-num text-2xl font-bold text-[var(--sp-blue)]">{ticker}</span>
         {quote && (
           <>
@@ -44,6 +57,14 @@ function StockDetail({ ticker, onBack }: { ticker: string; onBack: () => void })
             </span>
           </>
         )}
+        <button
+          onClick={handleCalculate}
+          disabled={!quote}
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--sp-blue)]/10 text-[var(--sp-blue)] text-sm font-semibold hover:bg-[var(--sp-blue)]/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Calculator className="w-4 h-4" />
+          Calculate Returns
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -82,7 +103,7 @@ export default function Home() {
       <AnimatePresence mode="wait">
         {selectedTicker ? (
           <div key="detail" className="mb-10">
-            <StockDetail ticker={selectedTicker} onBack={goHome} />
+            <StockDetail ticker={selectedTicker} onBack={goHome} onCalculate={setCalcStock} />
           </div>
         ) : (
           <motion.div

@@ -1,14 +1,14 @@
 import { Stock, NewsArticle, Recommendation, HistoricalDataPoint } from '@/types';
 
 export const mockStocks: Record<string, Stock> = {
-  NVDA: { ticker: 'NVDA', name: 'NVIDIA Corporation', price: 875.40, change: 12.35, changePercent: 1.43, volume: 45200000, marketCap: 2150000000000 },
-  AAPL: { ticker: 'AAPL', name: 'Apple Inc', price: 178.72, change: -1.28, changePercent: -0.71, volume: 52100000, marketCap: 2780000000000 },
-  TSLA: { ticker: 'TSLA', name: 'Tesla Inc', price: 248.50, change: 8.20, changePercent: 3.41, volume: 98500000, marketCap: 790000000000 },
-  MSFT: { ticker: 'MSFT', name: 'Microsoft Corporation', price: 415.60, change: 3.80, changePercent: 0.92, volume: 22400000, marketCap: 3090000000000 },
-  AMZN: { ticker: 'AMZN', name: 'Amazon.com Inc', price: 186.40, change: 2.15, changePercent: 1.17, volume: 38900000, marketCap: 1940000000000 },
-  META: { ticker: 'META', name: 'Meta Platforms Inc', price: 502.30, change: -4.70, changePercent: -0.93, volume: 18700000, marketCap: 1280000000000 },
-  GOOGL: { ticker: 'GOOGL', name: 'Alphabet Inc', price: 155.80, change: 1.45, changePercent: 0.94, volume: 25600000, marketCap: 1930000000000 },
-  SPY: { ticker: 'SPY', name: 'SPDR S&P 500 ETF', price: 512.40, change: 2.80, changePercent: 0.55, volume: 72300000, marketCap: 510000000000 },
+  NVDA: { ticker: 'NVDA', name: 'NVIDIA Corporation', price: 875.40, change: 12.35, changePercent: 1.43, volume: 45200000, marketCap: 2150000000000, changesByPeriod: { '1D': 1.43, '1W': 5.20, '1M': 12.80, '3M': 28.50, '1Y': 195.40 } },
+  AAPL: { ticker: 'AAPL', name: 'Apple Inc', price: 178.72, change: -1.28, changePercent: -0.71, volume: 52100000, marketCap: 2780000000000, changesByPeriod: { '1D': -0.71, '1W': -1.20, '1M': 3.10, '3M': -2.40, '1Y': 8.60 } },
+  TSLA: { ticker: 'TSLA', name: 'Tesla Inc', price: 248.50, change: 8.20, changePercent: 3.41, volume: 98500000, marketCap: 790000000000, changesByPeriod: { '1D': 3.41, '1W': 8.20, '1M': -5.30, '3M': 22.10, '1Y': -12.40 } },
+  MSFT: { ticker: 'MSFT', name: 'Microsoft Corporation', price: 415.60, change: 3.80, changePercent: 0.92, volume: 22400000, marketCap: 3090000000000, changesByPeriod: { '1D': 0.92, '1W': 2.10, '1M': 6.40, '3M': 10.20, '1Y': 32.50 } },
+  AMZN: { ticker: 'AMZN', name: 'Amazon.com Inc', price: 186.40, change: 2.15, changePercent: 1.17, volume: 38900000, marketCap: 1940000000000, changesByPeriod: { '1D': 1.17, '1W': 3.40, '1M': 8.90, '3M': 15.30, '1Y': 58.20 } },
+  META: { ticker: 'META', name: 'Meta Platforms Inc', price: 502.30, change: -4.70, changePercent: -0.93, volume: 18700000, marketCap: 1280000000000, changesByPeriod: { '1D': -0.93, '1W': 4.10, '1M': 11.20, '3M': 35.80, '1Y': 142.30 } },
+  GOOGL: { ticker: 'GOOGL', name: 'Alphabet Inc', price: 155.80, change: 1.45, changePercent: 0.94, volume: 25600000, marketCap: 1930000000000, changesByPeriod: { '1D': 0.94, '1W': 1.80, '1M': 5.20, '3M': 8.40, '1Y': 28.70 } },
+  SPY: { ticker: 'SPY', name: 'SPDR S&P 500 ETF', price: 512.40, change: 2.80, changePercent: 0.55, volume: 72300000, marketCap: 510000000000, changesByPeriod: { '1D': 0.55, '1W': 1.20, '1M': 3.80, '3M': 7.40, '1Y': 22.10 } },
 };
 
 export const mockNews: Record<string, NewsArticle[]> = {

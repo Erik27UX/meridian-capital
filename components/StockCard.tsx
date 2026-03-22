@@ -1,17 +1,21 @@
 'use client';
 import { motion } from 'framer-motion';
 import { Calculator } from 'lucide-react';
-import { Recommendation } from '@/types';
+import { Recommendation, Timeframe } from '@/types';
 import VibeBadge from './VibeBadge';
 import ProbabilityGauge from './ProbabilityGauge';
 
-export default function StockCard({ rec, index, onCalculate, onSelect }: {
+export default function StockCard({ rec, index, timeframe, onCalculate, onSelect }: {
   rec: Recommendation;
   index: number;
+  timeframe: Timeframe;
   onCalculate: () => void;
   onSelect: () => void;
 }) {
   const { stock, signal, probability, description, catalysts } = rec;
+
+  const periodChange = stock.changesByPeriod?.[timeframe] ?? stock.changePercent;
+  const isPositive = periodChange >= 0;
 
   return (
     <motion.div
@@ -25,9 +29,6 @@ export default function StockCard({ rec, index, onCalculate, onSelect }: {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="font-mono-num font-bold text-lg">{stock.ticker}</span>
-            <span className={`font-mono-num text-xs ${stock.changePercent >= 0 ? 'text-gain' : 'text-loss'}`}>
-              {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-            </span>
           </div>
           <div className="text-xs text-silver">{stock.name}</div>
         </div>
@@ -37,6 +38,15 @@ export default function StockCard({ rec, index, onCalculate, onSelect }: {
             {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}
           </div>
         </div>
+      </div>
+
+      <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-lg ${isPositive ? 'bg-[var(--sp-green)]/10' : 'bg-[var(--sp-red,#ef4444)]/10'}`}>
+        <span className={`font-mono-num text-xl font-bold ${isPositive ? 'text-gain' : 'text-loss'}`}>
+          {isPositive ? '+' : ''}{periodChange.toFixed(2)}%
+        </span>
+        <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${isPositive ? 'bg-[var(--sp-green)]/20 text-gain' : 'bg-[var(--sp-red,#ef4444)]/20 text-loss'}`}>
+          {timeframe}
+        </span>
       </div>
 
       <div className="mb-3">

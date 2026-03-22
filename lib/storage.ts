@@ -25,3 +25,10 @@ export function updateInvestmentPrice(id: string, currentPrice: number): void {
   );
   localStorage.setItem(STORAGE_KEY, JSON.stringify(investments));
 }
+
+export function updateInvestment(investment: Investment): void {
+  const investments = getInvestments().map(i =>
+    i.id === investment.id ? investment : i
+  );
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(investments));
+}
