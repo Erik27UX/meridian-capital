@@ -6,6 +6,7 @@ import { Stock, Investment } from '@/types';
 import SearchBar from '@/components/SearchBar';
 import RecommendedStocks from '@/components/RecommendedStocks';
 import FavouriteStocks from '@/components/FavouriteStocks';
+import AIMarketFeed from '@/components/AIMarketFeed';
 import PortfolioTracker from '@/components/PortfolioTracker';
 import InvestmentCalculator from '@/components/InvestmentCalculator';
 import StockChart from '@/components/StockChart';
@@ -194,6 +195,10 @@ export default function Home() {
           >
             <div className="mb-10">
               <FavouriteStocks onSelect={setSelectedTicker} />
+            </div>
+
+            <div className="mb-10">
+              <AIMarketFeed onSelect={setSelectedTicker} onCalculate={setCalcStock} />
             </div>
 
             <div className="mb-10">
