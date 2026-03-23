@@ -170,7 +170,7 @@ export default function AIMarketFeed({
 
   const generatedAgo = feed?.generatedAt
     ? (() => {
-        const diff = Math.floor((Date.now() - new Date(feed.generatedAt).getTime()) / 60000);
+        const diff = Math.floor((Date.now() - new Date(feed!.generatedAt).getTime()) / 60000);
         if (diff < 1) return 'just now';
         if (diff < 60) return `${diff}m ago`;
         return `${Math.floor(diff / 60)}h ago`;
@@ -238,7 +238,7 @@ export default function AIMarketFeed({
       ) : feed?.error ? (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/3 border border-white/8 text-sm text-[var(--sp-muted)]">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          {feed.error}
+          {feed!.error}
         </div>
       ) : feed?.picks.length === 0 ? (
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/3 border border-white/8 text-sm text-[var(--sp-muted)]">
@@ -258,9 +258,9 @@ export default function AIMarketFeed({
               />
             ))}
           </div>
-          {feed.newsCount != null && (
+          {feed!.newsCount != null && (
             <p className="mt-3 text-[10px] text-[var(--sp-muted)] text-center">
-              Based on {feed.newsCount} live headlines · Refreshes every 6h · Not financial advice
+              Based on {feed!.newsCount} live headlines · Refreshes every 6h · Not financial advice
             </p>
           )}
         </>
