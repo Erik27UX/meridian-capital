@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, TrendingUp, TrendingDown, X } from 'lucide-react';
 import { useFavourites } from '@/contexts/FavouritesContext';
-import { Stock } from '@/types';
 
 interface LiveFav {
   ticker: string;
