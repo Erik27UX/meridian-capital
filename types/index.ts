@@ -71,3 +71,31 @@ export interface ProjectionResult {
   gain: number;
   gainPercent: number;
 }
+
+export interface FactorBreakdown {
+  cagrSignal: number;
+  rsiValue: number;
+  rsiSignal: number;
+  volumeSignal: number;
+  momentumSignal: number;
+  newsSentimentScore: number;
+  newsSentimentSignal: number;
+  zScore: number;
+  zScoreSignal: number;
+  volRegime: number;
+  aiProbability: number;
+  aiSignal: number;
+}
+
+export interface EnhancedProjection {
+  expected: ProjectionResult;
+  bull: ProjectionResult;
+  bear: ProjectionResult;
+  probabilityScore: number;
+  confidenceLabel: 'Strong' | 'Moderate' | 'Weak' | 'Conflicted';
+  factors: FactorBreakdown;
+  bullishCount: number;
+  bearishCount: number;
+  neutralCount: number;
+  newsAdjustmentPct: number;
+}

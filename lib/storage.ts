@@ -32,3 +32,35 @@ export function updateInvestment(investment: Investment): void {
   );
   localStorage.setItem(STORAGE_KEY, JSON.stringify(investments));
 }
+
+// ─── Favourites ──────────────────────────────────────────────────────────────
+
+const FAVOURITES_KEY = 'stockpulse_favourites';
+
+export interface FavouriteStock {
+  ticker: string;
+  name: string;
+  addedAt: string;
+}
+
+export function getFavourites(): FavouriteStock[] {
+  if (typeof window === 'undefined') return [];
+  const data = localStorage.getItem(FAVOURITES_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+export function addFavourite(fav: FavouriteStock): void {
+  const favs = getFavourites();
+  if (favs.some(f => f.ticker === fav.ticker)) return;
+  favs.push(fav);
+  localStorage.setItem(FAVOURITES_KEY, JSON.stringify(favs));
+}
+
+export function removeFavourite(ticker: string): void {
+  const favs = getFavourites().filter(f => f.ticker !== ticker);
+  localStorage.setItem(FAVOURITES_KEY, JSON.stringify(favs));
+}
+
+export function isFavourite(ticker: string): boolean {
+  return getFavourites().some(f => f.ticker === ticker);
+}

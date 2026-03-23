@@ -1,7 +1,8 @@
 'use client';
 import { useRef, useEffect, useState } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Star } from 'lucide-react';
 import { useStockSearch } from '@/hooks/useStockSearch';
+import { useFavourites } from '@/contexts/FavouritesContext';
 import { Stock } from '@/types';
 
 export default function SearchBar({ onSelectStock, onCalculate }: {
@@ -9,6 +10,7 @@ export default function SearchBar({ onSelectStock, onCalculate }: {
   onCalculate: (stock: Stock) => void;
 }) {
   const { query, setQuery, results, loading } = useStockSearch();
+  const { isFavourite, addFavourite, removeFavourite } = useFavourites();
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -47,30 +49,44 @@ export default function SearchBar({ onSelectStock, onCalculate }: {
 
       {open && results.length > 0 && (
         <div className="absolute top-full mt-2 w-full glass rounded-xl shadow-2xl shadow-black/50 z-50 overflow-hidden">
-          {results.map(stock => (
-            <div
-              key={stock.ticker}
-              className="flex items-center justify-between px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0"
-              onClick={() => { onSelectStock(stock.ticker); setOpen(false); setQuery(''); }}
-            >
-              <div className="flex items-center gap-3">
-                <span className="font-mono-num font-bold text-sm text-[var(--sp-text)]">{stock.ticker}</span>
-                <span className="text-sm text-silver">{stock.name}</span>
+          {results.map(stock => {
+            const fav = isFavourite(stock.ticker);
+            return (
+              <div
+                key={stock.ticker}
+                className="flex items-center justify-between px-4 py-3 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                onClick={() => { onSelectStock(stock.ticker); setOpen(false); setQuery(''); }}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="font-mono-num font-bold text-sm text-[var(--sp-text)]">{stock.ticker}</span>
+                  <span className="text-sm text-silver">{stock.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono-num text-sm">${stock.price.toFixed(2)}</span>
+                  <span className={`font-mono-num text-xs ${stock.changePercent >= 0 ? 'text-gain' : 'text-loss'}`}>
+                    {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                  </span>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (fav) removeFavourite(stock.ticker);
+                      else addFavourite(stock.ticker, stock.name);
+                    }}
+                    className={`p-1.5 rounded-md transition-colors ${fav ? 'text-yellow-400 hover:text-yellow-300' : 'text-[var(--sp-muted)] hover:text-yellow-400'}`}
+                    title={fav ? 'Remove from favourites' : 'Add to favourites'}
+                  >
+                    <Star className={`w-4 h-4 ${fav ? 'fill-current' : ''}`} />
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); onCalculate(stock); setOpen(false); setQuery(''); }}
+                    className="px-3 py-1 text-xs font-semibold rounded-md bg-[var(--sp-blue)]/15 text-[var(--sp-blue)] hover:bg-[var(--sp-blue)]/25 transition-colors"
+                  >
+                    Calculate
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-mono-num text-sm">${stock.price.toFixed(2)}</span>
-                <span className={`font-mono-num text-xs ${stock.changePercent >= 0 ? 'text-gain' : 'text-loss'}`}>
-                  {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                </span>
-                <button
-                  onClick={e => { e.stopPropagation(); onCalculate(stock); setOpen(false); setQuery(''); }}
-                  className="px-3 py-1 text-xs font-semibold rounded-md bg-[var(--sp-blue)]/15 text-[var(--sp-blue)] hover:bg-[var(--sp-blue)]/25 transition-colors"
-                >
-                  Calculate
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

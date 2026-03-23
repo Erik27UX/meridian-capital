@@ -19,10 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen antialiased">
-        <div className="fixed top-0 left-0 right-0 z-50 bg-[var(--sp-blue)]/10 border-b border-[var(--sp-blue)]/20 px-4 py-2 text-center text-xs text-[var(--sp-blue)]">
-          Running in demo mode — add API keys in .env.local for live data
-        </div>
-        <div className="pt-8">
+        <div>
           <Providers>{children}</Providers>
         </div>
       </body>
