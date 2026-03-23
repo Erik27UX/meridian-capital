@@ -7,7 +7,7 @@ import { Sparkles, ArrowUpDown } from 'lucide-react';
 
 type SortMode = 'default' | 'profit' | 'bullish';
 
-const TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', '1Y'];
+const TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', 'YTD', '1Y'];
 
 export default function RecommendedStocks({ onCalculate, onSelect }: {
   onCalculate: (stock: Stock) => void;
@@ -23,10 +23,24 @@ export default function RecommendedStocks({ onCalculate, onSelect }: {
       .then(setRecs)
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    const interval = setInterval(() => {
+      getRecommendations().then(setRecs).catch(() => {});
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const sorted = [...recs].sort((a, b) => {
-    if (sort === 'profit') return b.stock.changePercent - a.stock.changePercent;
+    if (sort === 'profit') {
+      // Score = AI probability (forward-looking) weighted with period momentum
+      // Higher probability + better momentum = higher potential profit
+      const aChange = a.stock.changesByPeriod?.[timeframe] ?? a.stock.changePercent;
+      const bChange = b.stock.changesByPeriod?.[timeframe] ?? b.stock.changePercent;
+      const aScore = a.probability * (1 + aChange / 100);
+      const bScore = b.probability * (1 + bChange / 100);
+      return bScore - aScore;
+    }
     if (sort === 'bullish') return b.probability - a.probability;
     return 0;
   });
@@ -85,7 +99,7 @@ export default function RecommendedStocks({ onCalculate, onSelect }: {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {sorted.map((rec, i) => (
             <StockCard
-              key={rec.stock.ticker}
+              key={`${rec.stock.ticker}-${sort}-${timeframe}`}
               rec={rec}
               index={i}
               timeframe={timeframe}

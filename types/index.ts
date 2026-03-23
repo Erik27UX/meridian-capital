@@ -1,4 +1,4 @@
-export type Timeframe = '1D' | '1W' | '1M' | '3M' | '1Y';
+export type Timeframe = '1D' | '1W' | '1M' | '3M' | '1Y' | 'YTD';
 
 export interface Stock {
   ticker: string;

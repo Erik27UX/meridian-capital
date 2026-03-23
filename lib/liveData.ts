@@ -113,12 +113,21 @@ export async function getChangesByPeriod(ticker: string): Promise<Partial<Record
       return ((latest - prev) / prev) * 100;
     };
 
+    // YTD: find first trading day of this year
+    const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().split('T')[0];
+    const ytdIdx = quotes.findIndex((q: Record<string, unknown>) => {
+      const d = new Date(q.date as string | number).toISOString().split('T')[0];
+      return d >= yearStart;
+    });
+    const ytdClose = ytdIdx >= 0 ? (quotes[ytdIdx].close as number) : null;
+
     return {
       '1D': pct(getClose(1)),
       '1W': pct(getClose(5)),
       '1M': pct(getClose(21)),
       '3M': pct(getClose(63)),
       '1Y': pct(getClose(quotes.length - 1)),
+      'YTD': pct(ytdClose),
     } as Partial<Record<Timeframe, number>>;
   } catch {
     return {};

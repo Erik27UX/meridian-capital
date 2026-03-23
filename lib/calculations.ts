@@ -90,7 +90,7 @@ function calcNewsSentiment(
 ): { score: number; adjustmentPct: number } {
   // How much news can shift the estimate per timeframe (diminishes over longer horizons)
   const strength: Record<Timeframe, number> = {
-    '1D': 0.10, '1W': 0.07, '1M': 0.04, '3M': 0.02, '1Y': 0.01,
+    '1D': 0.10, '1W': 0.07, '1M': 0.04, '3M': 0.02, '1Y': 0.01, 'YTD': 0.02,
   };
   if (!news.length) return { score: 0, adjustmentPct: 0 };
 
@@ -287,6 +287,11 @@ export function timeframeToDays(tf: string): number {
     case '1M': return 30;
     case '3M': return 90;
     case '1Y': return 365;
+    case 'YTD': {
+      const now = new Date();
+      const jan1 = new Date(now.getFullYear(), 0, 1);
+      return Math.ceil((now.getTime() - jan1.getTime()) / (1000 * 60 * 60 * 24));
+    }
     default: return 30;
   }
 }

@@ -1,5 +1,4 @@
 'use client';
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calculator, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { Recommendation, Timeframe, EnhancedProjection } from '@/types';
@@ -9,11 +8,15 @@ import VibeBadge from './VibeBadge';
 import ProbabilityGauge from './ProbabilityGauge';
 
 const TIMEFRAME_LABEL: Record<Timeframe, string> = {
-  '1D': 'today', '1W': 'this week', '1M': 'this month', '3M': 'last 3 months', '1Y': 'this year',
+  '1D': 'today', '1W': 'this week', '1M': 'this month', '3M': 'last 3 months', '1Y': 'this year', 'YTD': 'year to date',
 };
 
-function fmt(n: number) {
-  return '$' + Math.abs(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const TIMEFRAME_SHORT: Record<Timeframe, string> = {
+  '1D': 'today', '1W': 'this week', '1M': 'this month', '3M': 'this quarter', '1Y': 'this year', 'YTD': 'YTD',
+};
+
+function fmtPct(n: number) {
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 }
 
 function ConfidenceBadge({ label, score }: { label: EnhancedProjection['confidenceLabel']; score: number }) {
@@ -41,6 +44,9 @@ function FactorDots({ bullish, bearish, neutral }: { bullish: number; bearish: n
   );
 }
 
+// Use $1000 as a base to derive clean percentages
+const BASE_AMOUNT = 1000;
+
 export default function StockCard({ rec, index, timeframe, onCalculate, onSelect }: {
   rec: Recommendation;
   index: number;
@@ -48,20 +54,18 @@ export default function StockCard({ rec, index, timeframe, onCalculate, onSelect
   onCalculate: () => void;
   onSelect: () => void;
 }) {
-  const [amount, setAmount] = useState('');
   const { stock, signal, probability, description, catalysts } = rec;
   const { history, news, loading: analysisLoading } = useStockAnalysis(stock.ticker);
 
   const periodChange = stock.changesByPeriod?.[timeframe] ?? stock.changePercent;
   const isPositive = periodChange >= 0;
 
-  const amountNum = parseFloat(amount) || 0;
-  const projection: EnhancedProjection | null = amountNum > 0 && history.length > 0
-    ? calculateEnhancedProjection(amountNum, history, news, stock, probability, timeframe)
+  const projection: EnhancedProjection | null = history.length > 0
+    ? calculateEnhancedProjection(BASE_AMOUNT, history, news, stock, probability, timeframe)
     : null;
 
-  const expectedGain = projection?.expected.gain ?? 0;
-  const isGain = expectedGain >= 0;
+  const expectedPct = projection?.expected.gainPercent ?? 0;
+  const isGain = expectedPct >= 0;
 
   return (
     <motion.div
@@ -79,8 +83,8 @@ export default function StockCard({ rec, index, timeframe, onCalculate, onSelect
         </div>
         <div className="text-right">
           <div className="font-mono-num font-semibold text-lg">${stock.price.toFixed(2)}</div>
-          <div className={`font-mono-num text-xs ${stock.change >= 0 ? 'text-gain' : 'text-loss'}`}>
-            {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)} today
+          <div className={`font-mono-num text-xs ${isPositive ? 'text-gain' : 'text-loss'}`}>
+            {isPositive ? '+' : ''}{(stock.price * periodChange / 100).toFixed(2)} {TIMEFRAME_SHORT[timeframe]}
           </div>
         </div>
       </div>
@@ -99,26 +103,12 @@ export default function StockCard({ rec, index, timeframe, onCalculate, onSelect
         <span className="text-[10px] text-[var(--sp-muted)] capitalize">{TIMEFRAME_LABEL[timeframe]}</span>
       </div>
 
-      {/* Multi-factor profit estimator */}
-      <div
-        className="mb-3 rounded-lg border border-white/8 bg-white/3 p-3"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="text-[10px] text-[var(--sp-muted)] uppercase tracking-wider mb-2">
-          Estimate my profit — {timeframe}
-        </div>
-
-        <div className="flex items-center gap-2 mb-2">
-          <div className="relative flex-1">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--sp-muted)] text-sm font-mono-num">$</span>
-            <input
-              type="number"
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              placeholder="10,000"
-              className="w-full pl-6 pr-3 py-1.5 bg-[var(--sp-bg)] border border-white/10 rounded-md font-mono-num text-sm text-[var(--sp-text)] placeholder:text-[var(--sp-muted)] focus:outline-none focus:border-[var(--sp-blue)]/40 transition-all"
-            />
-          </div>
+      {/* Multi-factor projection */}
+      <div className="mb-3 rounded-lg border border-white/8 bg-white/3 p-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] text-[var(--sp-muted)] uppercase tracking-wider">
+            {timeframe} projection
+          </span>
           {projection && (
             <ConfidenceBadge label={projection.confidenceLabel} score={projection.probabilityScore} />
           )}
@@ -129,36 +119,9 @@ export default function StockCard({ rec, index, timeframe, onCalculate, onSelect
             {/* Expected */}
             <div className={`flex items-center justify-between px-2.5 py-2 rounded-md ${isGain ? 'bg-[var(--sp-green)]/8' : 'bg-[var(--sp-red)]/8'}`}>
               <span className="text-[10px] text-[var(--sp-muted)] uppercase tracking-wider">Expected</span>
-              <div className="text-right">
-                <span className={`font-mono-num font-bold text-sm ${isGain ? 'text-gain' : 'text-loss'}`}>
-                  {isGain ? '+' : '-'}{fmt(expectedGain)}
-                </span>
-                <span className="font-mono-num text-[10px] text-[var(--sp-muted)] ml-1.5">
-                  → {fmt(projection.expected.projectedValue)}
-                </span>
-              </div>
-            </div>
-
-            {/* Bull / Bear */}
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="px-2 py-2 rounded-md bg-[var(--sp-green)]/6 border border-[var(--sp-green)]/10">
-                <div className="text-[9px] text-[var(--sp-green)]/70 uppercase tracking-wider mb-1">🚀 Best case</div>
-                <div className="font-mono-num text-xs font-bold text-gain">
-                  {projection.bull.gain >= 0 ? '+' : '-'}{fmt(projection.bull.gain)}
-                </div>
-                <div className="font-mono-num text-[9px] text-[var(--sp-muted)] mt-0.5">
-                  → {fmt(projection.bull.projectedValue)}
-                </div>
-              </div>
-              <div className="px-2 py-2 rounded-md bg-[var(--sp-red)]/6 border border-[var(--sp-red)]/10">
-                <div className="text-[9px] text-[var(--sp-red)]/70 uppercase tracking-wider mb-1">⚠️ Worst case</div>
-                <div className="font-mono-num text-xs font-bold text-loss">
-                  {projection.bear.gain >= 0 ? '+' : '-'}{fmt(projection.bear.gain)}
-                </div>
-                <div className="font-mono-num text-[9px] text-[var(--sp-muted)] mt-0.5">
-                  → {fmt(projection.bear.projectedValue)}
-                </div>
-              </div>
+              <span className={`font-mono-num font-bold text-sm ${isGain ? 'text-gain' : 'text-loss'}`}>
+                {fmtPct(expectedPct)}
+              </span>
             </div>
 
             {/* Factor summary */}
@@ -179,10 +142,8 @@ export default function StockCard({ rec, index, timeframe, onCalculate, onSelect
           </div>
         ) : (
           <div className="flex items-center gap-1.5 text-[10px] text-[var(--sp-muted)]">
-            {analysisLoading
-              ? <><Activity className="w-3 h-3 animate-spin" /> Loading model…</>
-              : <>Enter an amount to see a multi-factor estimate</>
-            }
+            <Activity className="w-3 h-3 animate-spin" />
+            {analysisLoading ? 'Loading model…' : 'Calculating projection…'}
           </div>
         )}
       </div>
