@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Activity, ArrowLeft, Calculator, Briefcase, CheckCircle, Star } from 'lucide-react';
+import useSWR from 'swr';
+import { Timeframe } from '@/types';
 import { Stock, Investment } from '@/types';
 import SearchBar from '@/components/SearchBar';
 import RecommendedStocks from '@/components/RecommendedStocks';
@@ -15,27 +17,35 @@ import { usePortfolio } from '@/hooks/usePortfolio';
 import { useStockPrice } from '@/hooks/useStockPrice';
 import { useFavourites } from '@/contexts/FavouritesContext';
 
+const DETAIL_TIMEFRAMES: Timeframe[] = ['1D', '1W', '1M', '3M', 'YTD', '1Y'];
+const fetcher = (url: string) => fetch(url).then(r => r.json());
+
 function StockDetail({ ticker, onBack, onCalculate }: { ticker: string; onBack: () => void; onCalculate: (stock: Stock) => void }) {
   const { quote } = useStockPrice(ticker);
+  const { data: fullStock } = useSWR(`/api/stocks?ticker=${ticker}&full=true`, fetcher, { refreshInterval: 60000 });
   const { isFavourite, addFavourite, removeFavourite } = useFavourites();
+  const [timeframe, setTimeframe] = useState<Timeframe>('1D');
   const fav = isFavourite(ticker);
+
+  const periodChange: number = fullStock?.changesByPeriod?.[timeframe] ?? quote?.changePercent ?? 0;
+  const periodDollar: number = quote ? (quote.price * periodChange / 100) : 0;
 
   function handleCalculate() {
     if (!quote) return;
     onCalculate({
       ticker: quote.ticker,
-      name: quote.ticker,
+      name: fullStock?.name ?? quote.ticker,
       price: quote.price,
       change: quote.change,
       changePercent: quote.changePercent,
       volume: quote.volume,
-      marketCap: 0,
+      marketCap: fullStock?.marketCap ?? 0,
     });
   }
 
   function handleFavourite() {
     if (fav) removeFavourite(ticker);
-    else addFavourite(ticker, quote?.ticker ?? ticker);
+    else addFavourite(ticker, fullStock?.name ?? quote?.ticker ?? ticker);
   }
 
   return (
@@ -58,8 +68,8 @@ function StockDetail({ ticker, onBack, onCalculate }: { ticker: string; onBack: 
         {quote && (
           <>
             <span className="font-mono-num text-3xl font-bold">${quote.price.toFixed(2)}</span>
-            <span className={`font-mono-num text-lg ${quote.changePercent >= 0 ? 'text-gain' : 'text-loss'}`}>
-              {quote.change >= 0 ? '+' : ''}{quote.change.toFixed(2)} ({quote.changePercent >= 0 ? '+' : ''}{quote.changePercent.toFixed(2)}%)
+            <span className={`font-mono-num text-lg ${periodChange >= 0 ? 'text-gain' : 'text-loss'}`}>
+              {periodDollar >= 0 ? '+' : ''}{periodDollar.toFixed(2)} ({periodChange >= 0 ? '+' : ''}{periodChange.toFixed(2)}%)
             </span>
             <span className="flex items-center gap-1 text-xs text-silver">
               <span className="w-2 h-2 rounded-full bg-[var(--sp-green)] animate-pulse-live" />
@@ -67,7 +77,21 @@ function StockDetail({ ticker, onBack, onCalculate }: { ticker: string; onBack: 
             </span>
           </>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          {/* Timeframe selector */}
+          <div className="flex items-center gap-1 bg-[var(--sp-card)] border border-white/10 rounded-lg p-1">
+            {DETAIL_TIMEFRAMES.map(tf => (
+              <button
+                key={tf}
+                onClick={() => setTimeframe(tf)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  timeframe === tf ? 'bg-[var(--sp-blue)] text-white' : 'text-silver hover:text-white'
+                }`}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
           <button
             onClick={handleFavourite}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${

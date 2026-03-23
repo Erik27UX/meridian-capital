@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { mockStocks } from '@/lib/mockData';
-import { getLiveQuote, searchLiveStocks } from '@/lib/liveData';
+import { getLiveQuote, getLiveStock, searchLiveStocks } from '@/lib/liveData';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('query');
   const ticker = searchParams.get('ticker');
+  const full = searchParams.get('full') === 'true';
 
   if (ticker) {
     const upper = ticker.toUpperCase();
     try {
+      if (full) {
+        // Return complete Stock with changesByPeriod for detail views
+        const stock = await getLiveStock(upper);
+        return NextResponse.json(stock);
+      }
       const q = await getLiveQuote(upper);
       return NextResponse.json({
         ticker: q.ticker,
